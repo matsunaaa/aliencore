@@ -1,27 +1,7 @@
-/* =========================================
-   1. 色彩映射 (Color Mapping)
-   ========================================= */
+/*color mapping*/
 
-/* 默认主题：Palette 1 (温暖粉绿复古风) */
+/* Palette 1 */
 :root {
-    --bg-out: #faeee7;
-    --grid-line: rgba(89, 74, 78, 0.1);
-    
-    --shell-glass: rgba(255, 255, 254, 0.6);
-    --shell-border: #33272a;
-    --shadow-hard: #33272a;
-    
-    --screen-bg: #fffffe;
-    --text-dark: #33272a;
-    --text-mid: #594a4e;
-    
-    --accent-primary: #ff8ba7;
-    --accent-secondary: #c3f0ca;
-    --accent-tertiary: #ffc6c7;
-}
-
-/* 备用主题：Palette 2 (海军蓝与奶油拼色风) */
-body.theme-alt {
     --bg-out: #fef6e4;
     --grid-line: rgba(23, 44, 102, 0.1);
     
@@ -38,8 +18,27 @@ body.theme-alt {
     --accent-tertiary: #f3d2c1;
 }
 
+
+/* Palette 2 */
+body.theme-alt {
+--bg-out: #faeee7;
+    --grid-line: rgba(89, 74, 78, 0.1);
+    
+    --shell-glass: rgba(255, 255, 254, 0.6);
+    --shell-border: #33272a;
+    --shadow-hard: #33272a;
+    
+    --screen-bg: #fffffe;
+    --text-dark: #33272a;
+    --text-mid: #594a4e;
+    
+    --accent-primary: #ff8ba7;
+    --accent-secondary: #c3f0ca;
+    --accent-tertiary: #ffc6c7;
+}
+
 /* =========================================
-   2. 全局与背景 (Global & Background)
+  Global & Background
    ========================================= */
 body, html {
     margin: 0;
@@ -63,7 +62,7 @@ body:not(.blog-page) {
 }
 
 /* =========================================
-   3. 🌟 新增：散落照片墙 (Photo Wall)
+   Photo Wall
    ========================================= */
 .photo-wall {
     position: absolute;
@@ -136,7 +135,7 @@ body:not(.blog-page) {
 }
 
 /* =========================================
-   4. 掌机悬浮与外壳 (The Hovering Console)
+   The Hovering Console
    ========================================= */
 .levitation-wrapper {
     position: relative;
@@ -203,7 +202,7 @@ body:not(.blog-page) {
 }
 
 /* =========================================
-   5. 屏幕区域与视图控制 (Screen & Views)
+  Screen & Views
    ========================================= */
 .main-screen {
     height: 260px;
@@ -259,7 +258,7 @@ body:not(.blog-page) {
 }
 
 /* =========================================
-   6. 列表样式 (Projects & Logs)
+  Projects & Logs
    ========================================= */
 .project-list, .log-list {
     display: flex; flex-direction: column; gap: 12px;

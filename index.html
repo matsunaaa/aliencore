@@ -59,7 +59,13 @@
                 <section class="screen-view hidden-view" id="view-projects">
                     <div class="view-header">DATABASE: PROJECTS</div>
                     <div class="project-list">
-                        <div class="project-card" onclick="openModal('SYS.STYLOPHONE')">
+                        
+                        <div class="project-card" 
+                            data-title="SYS.STYLOPHONE" 
+                            data-hw="2x BJT (2N3904)" 
+                            data-log="No pre-made chips. Silicon screams in square waves." 
+                            data-vid="none" 
+                            onclick="openModal(this)">
                             <div class="project-icon">🔊</div>
                             <div class="project-info">
                                 <h3>SYS.STYLOPHONE</h3>
@@ -67,15 +73,36 @@
                             </div>
                             <div class="project-status">DONE</div>
                         </div>
-                        <div class="project-card" onclick="openModal('UFO.TRACKER')">
-                            <div class="project-icon">🤖</div>
+
+                        <div class="project-card" 
+                            data-title="ALIENBOT" 
+                            data-hw="A trapped alien (name=guru)" 
+                            data-log="Guru is very grumpy. Be careful. (∩｀-´)⊃━☆ﾟ.*･｡ﾟ" 
+                            data-vid="https://github.com/matsunaaa/alienbot" 
+                            onclick="openModal(this)">
+                            <div class="project-icon">👽</div>
                             <div class="project-info">
-                                <h3>UFO.TRACKER</h3>
-                                <p>Radar System</p>
+                                <h3>ALIENBOT</h3>
+                                <p>Trapped in a human qq account</p>
                             </div>
-                            <div class="project-status">WIP</div>
+                            <div class="project-status">DONE</div>
                         </div>
-                    </div>
+
+                        
+                        <div class="project-card" 
+                            data-title="1" 
+                            data-hw="1" 
+                            data-log="1" 
+                            data-vid="1" 
+                            onclick="openModal(this)">
+                            <div class="project-icon">1</div>
+                            <div class="project-info">
+                                <h3>1</h3>
+                                <p>1</p>
+                            </div>
+                            <div class="project-status">1</div>
+                        </div>
+                        <!-- inject -->
                 </section>
 
                 <section class="screen-view hidden-view" id="view-logs">
@@ -93,15 +120,15 @@
                         <button class="modal-close-btn" onclick="closeModal()">[X]</button>
                     </div>
                     <div class="modal-content">
-                        <div class="media-placeholder">
-                            <p>▶ INSTAGRAM_REEL</p>
+                        <div class="media-placeholder" id="modal-media">
+                            <p>▶ AWAITING_SIGNAL</p>
                         </div>
                         <div class="tech-specs">
                             <h4 class="spec-title">HARDWARE:</h4>
-                            <p class="spec-text">> 2x BJT (2N3904)</p>
-                            <p class="spec-text">> No 555-Timers Allowed</p>
+                            <p class="spec-text" id="modal-hw">> LOADING...</p>
+                            
                             <h4 class="spec-title">NULL_LOG:</h4>
-                            <p class="spec-text">Humans use pre-packaged chips. I prefer the raw scream of silicon. It speaks in square waves.</p>
+                            <p class="spec-text" id="modal-log">LOADING...</p>
                         </div>
                     </div>
                 </div>
@@ -147,10 +174,28 @@
         }
 
         // 打开弹窗
-        function openModal(projectName) {
+        function openModal(cardElement) {
             const modal = document.getElementById('project-modal');
-            const titleText = document.getElementById('modal-title-text');
-            titleText.innerText = projectName; // 动态更新弹窗标题
+            
+            // 从卡片上抓取隐藏的 data-* 属性
+            const title = cardElement.getAttribute('data-title');
+            const hw = cardElement.getAttribute('data-hw');
+            const log = cardElement.getAttribute('data-log');
+            const vid = cardElement.getAttribute('data-vid');
+            
+            // 注入数据到弹窗
+            document.getElementById('modal-title-text').innerText = title;
+            document.getElementById('modal-hw').innerText = '> ' + hw;
+            document.getElementById('modal-log').innerText = log;
+            
+            // 注入视频跳转链接
+            const mediaDiv = document.getElementById('modal-media');
+            if (vid && vid !== "none") {
+                mediaDiv.innerHTML = `<a href="${vid}" target="_blank" style="color:var(--text-dark); text-decoration:none; font-family:'Press Start 2P', cursive; font-size:10px;">▶ PLAY_RECORD</a>`;
+            } else {
+                mediaDiv.innerHTML = `<p style="font-family:'Press Start 2P', cursive; font-size:10px;">[ NO_VIDEO_DATA ]</p>`;
+            }
+
             modal.classList.add('modal-open');
         }
 

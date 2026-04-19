@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NULL_OS // LAYOUT ENGINE v4.0</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    
+    <style>
+        /* 1. PALETTE DEFINITIONS */
+        :root {
+            --bg-out: #faeee7;
+            --grid-line: rgba(89, 74, 78, 0.15);
+            --shell-border: #33272a;
+            --shadow-hard: #33272a;
+            --screen-bg: #fffffe;
+            --text-dark: #33272a;
+            --text-mid: #594a4e;
+            --accent-pink: #ff8ba7;
+            --accent-green: #c3f0ca;
+            --accent-peach: #ffc6c7;
+            
+            --p2-blue: #001858;
+            --p2-sky: #8bd3dd;
+            --p2-peach: #f3d2c1;
+            --p2-magenta: #f582ae;
+        }
+
+        /* 2. BASE RESET */
+        body, html { margin: 0; padding: 0; overflow: hidden; background-color: var(--bg-out); font-family: 'VT323', monospace; }
+        
+        /* 3. DEV SIDEBAR */
+        #dev-sidebar {
+            position: fixed; left: 0; top: 0; width: 280px; height: 100vh;
+            background-color: var(--text-dark); color: var(--screen-bg);
+            border-right: 4px solid var(--accent-pink); z-index: 99999;
+            padding: 20px; box-sizing: border-box; overflow-y: auto;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+        }
+        
+        .dev-title { font-family: 'Press Start 2P', cursive; font-size: 11px; color: var(--accent-pink); margin-bottom: 25px; line-height: 1.6; text-shadow: 2px 2px 0px var(--shell-border); }
+        .dev-category { font-family: 'Press Start 2P', cursive; font-size: 8px; color: var(--accent-green); margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid var(--shell-border); padding-bottom: 5px; }
+
+        .dev-btn {
+            display: block; width: 100%; background: var(--screen-bg); color: var(--text-dark);
+            border: 3px solid var(--shell-border); padding: 10px 10px; margin-bottom: 10px;
+            font-family: 'VT323', monospace; font-size: 16px; font-weight: bold;
+            cursor: pointer; text-align: left; transition: all 0.2s;
+            box-shadow: 3px 3px 0px var(--accent-pink);
+        }
+        .dev-btn:hover { background: var(--accent-green); transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--accent-pink); }
+        .dev-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0px var(--accent-pink); }
+
+        /* 4. INFINITE CANVAS */
+        #dev-canvas {
+            position: absolute; left: 280px; top: 0; width: calc(100vw - 280px); height: 100vh;
+            overflow: auto; padding: 50px; box-sizing: border-box;
+            background-image: 
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 40px 40px; z-index: 1;
+        }
+        #export-zone { position: relative; width: 100%; min-height: 2000px; }
+
+        /* 5. INCINERATOR */
+        #trash-can {
+            position: fixed; bottom: -80px; left: calc(50% + 140px); transform: translateX(-50%);
+            width: 350px; height: 120px; background: #ff4757; color: white;
+            border: 4px solid var(--shell-border); border-radius: 20px 20px 0 0;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            font-family: 'Press Start 2P', cursive; font-size: 14px;
+            transition: bottom 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s; z-index: 99999;
+            box-shadow: 0 -5px 20px rgba(255, 71, 87, 0.4);
+        }
+        #trash-can.trash-active { bottom: 0; }
+        #trash-can.trash-hover { background: #ff0000; box-shadow: 0 -5px 30px rgba(255, 0, 0, 0.8); }
+
+        /* 6. EXPORT ACTION BUTTON */
+        #export-btn {
+            position: fixed; top: 20px; right: 20px; background: var(--accent-pink);
+            color: var(--text-dark); border: 4px solid var(--shell-border); padding: 15px 20px;
+            font-family: 'VT323', monospace; font-size: 20px; font-weight: bold;
+            cursor: pointer; z-index: 99999; box-shadow: 5px 5px 0px var(--shadow-hard);
+            transition: transform 0.1s;
+        }
+        #export-btn:active { transform: translate(3px, 3px); box-shadow: 2px 2px 0px var(--shadow-hard); }
+
+        /* 7. WIDGET STYLES */
+        .builder-item { position: absolute; cursor: grab; user-select: none; }
+        .builder-item:active { cursor: grabbing; }
+        
+        .diary-entry { display: flex; align-items: flex-start; gap: 30px; }
+        .photo-frame { background: white; padding: 15px 15px 40px 15px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 10px 10px 0px var(--shell-border); position: relative; overflow: hidden; }
+        .photo-frame.tiny { padding: 5px 5px 15px 5px; }
+        
+        .polaroid-frame { background: #fafafa; padding: 12px 12px 35px 12px; border: 1px solid rgba(0,0,0,0.1); box-shadow: 6px 8px 15px rgba(0,0,0,0.15); position: relative; width: 180px; }
+        .polaroid-frame .caption { font-family:'Press Start 2P', cursive; font-size:8px; position:absolute; bottom:8px; left:0; width:100%; text-align:center; color:#333; }
+        
+        .placeholder-img { width: 100%; height: 100%; object-fit: cover; background-color: #ddd; display: flex; justify-content: center; align-items: center; color: #888; font-weight: bold; border: 1px solid rgba(0,0,0,0.05); }
+        .alien-note.sticky { padding: 15px; box-shadow: 5px 5px 0px var(--shell-border); width: 220px; color: var(--text-dark); border: 3px solid var(--shell-border); transition: background-color 0.2s; position: relative; }
+        
+        .pixel-sticker { background: var(--accent-pink); color: white; padding: 5px 10px; font-family: 'Press Start 2P', cursive; font-size: 8px; box-shadow: 2px 2px 0px var(--text-dark); display: inline-block; }
+        
+        .code-snippet { background: var(--text-dark); color: var(--accent-green); border: 2px solid var(--accent-pink); padding: 10px; width: 250px; font-family: monospace; font-size: 14px; box-shadow: 4px 4px 0px var(--shell-border); }
+        
+        .circuit-trace { background: var(--accent-green); height: 8px; border-radius: 4px; box-shadow: 0 0 10px var(--accent-green); position: relative; }
+        .circuit-trace::after { content:''; position:absolute; right: -5px; top: -1px; width: 10px; height: 10px; background:var(--accent-pink); border-radius:50%; }
+
+        /* 8. COLOR THEMES FOR NOTES */
+        .alien-note.theme-mint { background-color: var(--accent-green); color: var(--text-dark); }
+        .alien-note.theme-mint h3 { color: var(--accent-pink); }
+        
+        .alien-note.theme-pink { background-color: var(--accent-pink); color: var(--screen-bg); }
+        .alien-note.theme-pink h3 { color: var(--shell-border); }
+        .alien-note.theme-pink p { color: var(--screen-bg); }
+        
+        .alien-note.theme-blue { background-color: var(--p2-blue); color: var(--p2-sky); border-color: var(--p2-magenta); }
+        .alien-note.theme-blue h3 { color: var(--p2-magenta); }
+        .alien-note.theme-blue p { color: var(--p2-sky); }
+        
+        .note-theme-btn {
+            position: absolute; top: -10px; right: -10px;
+            width: 25px; height: 25px; background: var(--accent-pink);
+            border: 2px solid var(--shell-border); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; z-index: 10; font-size: 14px;
+            transition: transform 0.2s ease, background 0.2s;
+        }
+        .note-theme-btn:hover { transform: scale(1.1) rotate(90deg); background: var(--accent-green); }
+
+        /* 9. WIDGET CONFIG PANELS (DEV ONLY) */
+        .builder-module { background: var(--screen-bg); border: 3px solid var(--shell-border); padding: 10px; box-shadow: 4px 4px 0px var(--text-dark); font-family: 'VT323', monospace; }
+        .builder-module-title { font-family: 'Press Start 2P', cursive; font-size: 8px; color: var(--accent-pink); margin-bottom: 8px; border-bottom: 1px dashed var(--text-mid); padding-bottom: 4px; }
+        .module-input { border: 1px solid var(--text-mid); background: var(--bg-out); padding: 2px 5px; outline: none; }
+    </style>
+</head>
+<body>
+
+    <div id="dev-sidebar">
+        <div class="dev-title">SYS.LAYOUT<br><br>ENGINE v4.0</div>
+        
+        <div class="dev-category">[ VISUAL_DATA ]</div>
+        <button class="dev-btn" onclick="spawnElement('photo-large')">🖼️ FRAME_L</button>
+        <button class="dev-btn" onclick="spawnElement('photo-small')">🖼️ FRAME_S</button>
+        <button class="dev-btn" onclick="spawnElement('photo-polaroid')">📸 SPECIMEN_TAG</button>
+        
+        <div class="dev-category">[ TEXT_NODES ]</div>
+        <button class="dev-btn" onclick="spawnElement('sticky-note')">📝 DATA_LOG (⚙️)</button>
+        <button class="dev-btn" onclick="spawnElement('code-snippet')">📟 SOURCE_CODE</button>
+        
+        <div class="dev-category">[ INTERACT_MODS ]</div>
+        <button class="dev-btn" onclick="spawnElement('link-btn')">🔗 HYPER_JUMP</button>
+        <button class="dev-btn" onclick="spawnElement('music-btn')">🔊 SONIC_EMITTER</button>
+
+        <div class="dev-category">[ HW_TRACES ]</div>
+        <button class="dev-btn" onclick="spawnElement('circuit-h')">➖ CU_TRACE</button>
+        <button class="dev-btn" onclick="spawnElement('ee-resistor')">〰️ R_10K</button>
+        <button class="dev-btn" onclick="spawnElement('sticker-glitch')">✨ GLITCH_NODE</button>
+        
+        <div style="margin-top: 40px; border-top: 2px dashed var(--accent-pink); padding-top: 20px;">
+            <p style="font-size: 14px; color: var(--accent-peach);">[ MANAGE_PROTOCOL ]</p>
+            <p style="font-size: 13px; color: var(--screen-bg);">> 1. DRAG TO RELOCATE</p>
+            <p style="font-size: 13px; color: var(--screen-bg);">> 2. DBL-CLICK TO TORSION</p>
+            <p style="font-size: 13px; color: var(--screen-bg);">> 3. DRAG TO INCINERATOR</p>
+            <p style="font-size: 13px; color: var(--screen-bg);">> 4. CLICK ⚙️ RECOLOR</p>
+        </div>
+    </div>
+
+    <div id="trash-can">
+        <span style="font-size: 24px; margin-bottom: 5px;">🔥</span>
+        INCINERATOR
+    </div>
+
+    <button id="export-btn" onclick="exportLayout()">💾 COMPILE_SYS</button>
+
+    <div id="dev-canvas">
+        <div id="export-zone" class="diary-container">
+            <div class="alien-note sticky builder-item theme-mint" style="top: 150px; left: 150px;">
+                <div class="note-theme-btn" onclick="cycleNoteColor(this)" contenteditable="false">⚙️</div>
+                <h3 style="margin-top:0; font-family:'Press Start 2P', cursive; font-size:10px;">SYS_INIT</h3>
+                <p style="font-family:'VT323', monospace; font-size:18px; margin-bottom:0;" contenteditable="true">WORKSPACE ACTIVE. AWAITING INPUT.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CORE VARS
+        let isDragging = false;
+        let currentEl = null;
+        let offsetX = 0, offsetY = 0;
+        let highestZ = 100;
+
+        const canvas = document.getElementById('dev-canvas');
+        const exportZone = document.getElementById('export-zone');
+        const trashCan = document.getElementById('trash-can');
+
+        // DRAG EVENT HANDLERS
+        function makeDraggable(element) {
+            element.classList.add('builder-item');
+            
+            element.addEventListener('mousedown', (e) => {
+                // IGNORE DRAG IF CLICKING EDITABLE AREAS
+                if (e.target.classList.contains('note-theme-btn') || e.target.getAttribute('contenteditable') === 'true' || e.target.tagName.toLowerCase() === 'input') {
+                    return;
+                }
+                
+                isDragging = true;
+                currentEl = element;
+                highestZ++;
+                currentEl.style.zIndex = highestZ;
+                trashCan.classList.add('trash-active');
+                
+                const rect = currentEl.getBoundingClientRect();
+                offsetX = e.clientX - rect.left;
+                offsetY = e.clientY - rect.top;
+            });
+
+            // DOUBLE CLICK ROTATION
+            element.addEventListener('dblclick', (e) => {
+                if (e.target.classList.contains('note-theme-btn') || e.target.getAttribute('contenteditable') === 'true' || e.target.tagName.toLowerCase() === 'input') {
+                    return;
+                }
+                const randomAngle = Math.floor(Math.random() * 30) - 15;
+                currentEl.style.setProperty('--rotation', `${randomAngle}deg`);
+                currentEl.style.transform = `rotate(${randomAngle}deg)`;
+            });
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging || !currentEl) return;
+            
+            const canvasRect = canvas.getBoundingClientRect();
+            let newX = e.clientX - canvasRect.left + canvas.scrollLeft - offsetX;
+            let newY = e.clientY - canvasRect.top + canvas.scrollTop - offsetY;
+
+            currentEl.style.left = newX + 'px';
+            currentEl.style.top = newY + 'px';
+
+            // TRASH COLLISION DETECTION
+            const trashRect = trashCan.getBoundingClientRect();
+            if (e.clientY > trashRect.top) {
+                trashCan.classList.add('trash-hover');
+                currentEl.style.opacity = '0.4';
+                currentEl.style.transform = 'scale(0.8) rotate(0deg)';
+            } else {
+                trashCan.classList.remove('trash-hover');
+                currentEl.style.opacity = '1';
+                const currentRot = currentEl.style.getPropertyValue('--rotation') || '0deg';
+                currentEl.style.transform = `rotate(${currentRot})`;
+            }
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            if (!isDragging || !currentEl) return;
+            
+            const trashRect = trashCan.getBoundingClientRect();
+            if (e.clientY > trashRect.top) {
+                currentEl.remove();
+            }
+
+            trashCan.classList.remove('trash-active');
+            trashCan.classList.remove('trash-hover');
+            if(currentEl) currentEl.style.opacity = '1';
+            
+            isDragging = false;
+            currentEl = null;
+        });
+
+        // THEME CYCLING LOGIC
+        const noteThemes = ['theme-mint', 'theme-pink', 'theme-blue'];
+        
+        function cycleNoteColor(btn) {
+            const noteEl = btn.parentElement;
+            let currentThemeIndex = -1;
+            
+            noteThemes.forEach((theme, index) => {
+                if (noteEl.classList.contains(theme)) {
+                    currentThemeIndex = index;
+                }
+            });
+            
+            noteEl.classList.remove(noteThemes[currentThemeIndex]);
+            const nextThemeIndex = (currentThemeIndex + 1) % noteThemes.length;
+            noteEl.classList.add(noteThemes[nextThemeIndex]);
+        }
+
+        // INIT DOM ELEMENTS
+        document.querySelectorAll('.builder-item').forEach(makeDraggable);
+
+        // COMPONENT TEMPLATES
+        const templates = {
+            'photo-large': `
+                <div class="diary-entry">
+                    <div class="photo-frame" style="width: 350px; height: 280px;">
+                        <div class="placeholder-img" style="background:var(--accent-pink); color:var(--text-dark);">IMG_SRC</div>
+                    </div>
+                </div>`,
+            'photo-small': `
+                <div class="diary-entry">
+                    <div class="photo-frame tiny" style="width: 150px; height: 150px;">
+                        <div class="placeholder-img" style="background:var(--accent-green); color:var(--text-dark);">IMG_SRC</div>
+                    </div>
+                </div>`,
+            'photo-polaroid': `
+                <div class="polaroid-frame">
+                    <div class="placeholder-img" style="width:180px; height:180px; background:#ddd;">IMG</div>
+                    <p class="caption">DATA_LABEL</p>
+                </div>`,
+            'sticky-note': `
+                <div class="alien-note sticky theme-mint">
+                    <div class="note-theme-btn" onclick="cycleNoteColor(this)" contenteditable="false">⚙️</div>
+                    <h3 style="margin-top:0; font-family:'Press Start 2P', cursive; font-size:10px;">LOG_ENTRY</h3>
+                    <p style="font-family:'VT323', monospace; font-size:18px; margin-bottom:0;" contenteditable="true">INPUT_OBSERVATION_DATA...</p>
+                </div>`,
+            'code-snippet': `
+                <div class="code-snippet">
+                    > void main() {<br>
+                    > &nbsp;&nbsp;init_system();<br>
+                    > }
+                </div>`,
+            'circuit-h': `
+                <div class="circuit-trace" style="width: 200px;"></div>`,
+            'ee-resistor': `
+                <div class="diary-entry">
+                    <div class="photo-frame tiny" style="width: 100px; height: 100px;">
+                        <div class="placeholder-img" style="background:#eee; color:var(--accent-pink);">〰️ R 〰️</div>
+                    </div>
+                </div>`,
+            'sticker-glitch': `
+                <div class="pixel-sticker">[GLITCH]</div>`,
+            // NEW: HYPERLINK MODULE
+            'link-btn': `
+                <div class="builder-module builder-link-widget" style="width: 180px;">
+                    <div class="builder-module-title">MODULE: JUMP_GATE</div>
+                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 5px;">
+                        <span style="color:var(--accent-pink);">TXT:</span>
+                        <span contenteditable="true" class="module-input link-label" style="flex-grow:1;">LAUNCH</span>
+                    </div>
+                    <div style="font-size: 12px; display: flex; align-items: center; gap: 5px;">
+                        <span style="color:var(--accent-green);">URL:</span>
+                        <span contenteditable="true" class="module-input link-url" style="flex-grow:1;">index.html</span>
+                    </div>
+                </div>`,
+            // NEW: AUDIO MODULE
+            'music-btn': `
+                <div class="builder-module builder-audio-widget" style="width: 220px;">
+                    <div class="builder-module-title">MODULE: SONIC_EMIT</div>
+                    <div style="font-size: 14px; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 5px;">
+                        <span style="color:var(--accent-pink);">SRC:</span>
+                        <span contenteditable="true" class="module-input audio-file" style="flex-grow:1;">null_theme.mp3</span>
+                    </div>
+                    <div style="font-size: 10px; color: var(--text-mid);">*WILL DEPLOY AS PLAY BTN*</div>
+                </div>`
+        };
+
+        function spawnElement(type) {
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = templates[type].trim();
+            const newEl = wrapper.firstChild;
+            
+            const startX = canvas.scrollLeft + (canvas.clientWidth / 2) - 100 + (Math.random()*40-20);
+            const startY = canvas.scrollTop + 200 + (Math.random()*40-20);
+            
+            newEl.style.left = startX + 'px';
+            newEl.style.top = startY + 'px';
+            newEl.style.transform = `rotate(0deg)`;
+            newEl.style.setProperty('--rotation', '0deg');
+            
+            const caption = newEl.querySelector('.caption');
+            if (caption) caption.setAttribute('contenteditable', 'true');
+            
+            if (type === 'code-snippet' || type === 'sticker-glitch') {
+                newEl.setAttribute('contenteditable', 'true');
+            }
+            
+            exportZone.appendChild(newEl);
+            makeDraggable(newEl);
+        }
+
+        // EXPORT COMPILER
+        function exportLayout() {
+            const clone = exportZone.cloneNode(true);
+            
+            // SMART PARSE: HYPERLINKS
+            const links = clone.querySelectorAll('.builder-link-widget');
+            links.forEach(widget => {
+                const label = widget.querySelector('.link-label').innerText;
+                const url = widget.querySelector('.link-url').innerText;
+                const tTop = widget.style.top;
+                const tLeft = widget.style.left;
+                const tTrans = widget.style.transform;
+                const tRot = widget.style.getPropertyValue('--rotation');
+
+                const finalBtn = document.createElement('button');
+                finalBtn.className = 'nav-btn';
+                finalBtn.style.position = 'absolute';
+                finalBtn.style.top = tTop;
+                finalBtn.style.left = tLeft;
+                finalBtn.style.transform = tTrans;
+                if(tRot) finalBtn.style.setProperty('--rotation', tRot);
+                finalBtn.style.fontSize = '14px';
+                finalBtn.style.padding = '10px 20px';
+                finalBtn.setAttribute('onclick', `window.location.href='${url}'`);
+                finalBtn.innerText = label;
+
+                widget.parentNode.replaceChild(finalBtn, widget);
+            });
+
+            // SMART PARSE: AUDIO CONTROLS
+            const audios = clone.querySelectorAll('.builder-audio-widget');
+            audios.forEach(widget => {
+                const file = widget.querySelector('.audio-file').innerText;
+                const tTop = widget.style.top;
+                const tLeft = widget.style.left;
+                const tTrans = widget.style.transform;
+                const tRot = widget.style.getPropertyValue('--rotation');
+                const aId = 'SND_' + Math.floor(Math.random()*10000);
+
+                const container = document.createElement('div');
+                container.style.position = 'absolute';
+                container.style.top = tTop;
+                container.style.left = tLeft;
+                container.style.transform = tTrans;
+                if(tRot) container.style.setProperty('--rotation', tRot);
+
+                container.innerHTML = `
+                    <button class="nav-btn" style="font-size:12px; padding:10px; display:flex; align-items:center; gap:8px;" onclick="var a=document.getElementById('${aId}'); if(a.paused){a.play(); this.querySelector('.ico').innerText='[||]';}else{a.pause(); this.querySelector('.ico').innerText='[>]';}">
+                        <span class="ico">[>]</span> <span>PLAY_AUDIO</span>
+                    </button>
+                    <audio id="${aId}" src="${file}" loop></audio>
+                `;
+                widget.parentNode.replaceChild(container, widget);
+            });
+            
+            // CLEANUP BUILDER METADATA
+            const items = clone.querySelectorAll('.builder-item');
+            items.forEach(el => {
+                el.classList.remove('builder-item');
+                el.style.cursor = '';
+                el.style.zIndex = '';
+                el.style.userSelect = '';
+                
+                const gear = el.querySelector('.note-theme-btn');
+                if(gear) gear.remove();
+                
+                // REMOVE EDITABLE TAGS FROM CHILDREN
+                el.querySelectorAll('[contenteditable]').forEach(c => {
+                    c.removeAttribute('contenteditable');
+                });
+                el.removeAttribute('contenteditable');
+            });
+
+            // COMPILER OUTPUT
+            console.log("=========================================\n");
+            console.log("COPY THIS COMPILED PAYLOAD INTO YOUR <main> TAG:\n\n");
+            console.log(clone.innerHTML);
+            console.log("\n=========================================");
+            
+            alert("SYS_MSG: COMPILATION SUCCESS. OPEN DEV CONSOLE (F12) TO EXTRACT DATA.");
+        }
+    </script>
+</body>
+</html>
