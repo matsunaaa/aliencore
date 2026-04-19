@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>null.pointer._exception // NULL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <div class="photo-wall">
+        <div class="polaroid" style="top: 8%; left: 5%; transform: rotate(-12deg);" onclick="window.location.href='earthday1.html'">
+            <div class="polaroid-img" style="background: #ff8ba7;">[IMG_01]</div>
+            <p class="polaroid-caption">EARTH_DAY.01</p>
+        </div>
+        
+        <div class="polaroid" style="bottom: 10%; left: 10%; transform: rotate(8deg);" onclick="alert('SYS_ERR: WORKBENCH_NOT_FOUND. STILL_BUILDING...')">
+            <div class="polaroid-img" style="background: #c3f0ca;">[IMG_02]</div>
+            <p class="polaroid-caption">LAB_SETUP</p>
+        </div>
+
+        <div class="polaroid" style="top: 15%; right: 8%; transform: rotate(15deg);" onclick="alert('WARNING: COMPONENT_STOLEN_BY_CAT')">
+            <div class="polaroid-img" style="background: #8bd3dd;">[IMG_03]</div>
+            <p class="polaroid-caption">404_CAPACITOR</p>
+        </div>
+
+        <div class="polaroid" style="bottom: 15%; right: 5%; transform: rotate(-6deg);" onclick="alert('ACCESS_DENIED: BIOLOGICAL_DATA_ENCRYPTED')">
+            <div class="polaroid-img" style="background: #f582ae;">[IMG_04]</div>
+            <p class="polaroid-caption">ALIEN_CREW</p>
+        </div>
+    </div>
+
+    <div class="levitation-wrapper">
+        
+        <div class="console-shell">
+            
+            <div class="mystery-toggle" onclick="document.body.classList.toggle('theme-alt')"></div>
+            
+            <div class="status-bar">
+                <span>SIGNAL: STABLE</span>
+                <span>BATT: 88%</span>
+                <span class="music-toggle" id="music-btn" onclick="toggleMusic()">[►] MUSIC: OFF</span>
+            </div>
+
+            <audio id="bg-music" loop>
+                <source src="assets/null-theme.mp3" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+
+            <main class="main-screen" id="screen-display">
+                <div class="scanline"></div>
+                
+                <section class="screen-view active-view" id="view-home">
+                    <h1 class="pixel-title">HELLO, WORLD?</h1>
+                    <p class="subtitle">An alien who makes stuff. 👽</p>
+                    <div class="null-avatar">[ 0 _ 0 ]</div>
+                </section>
+
+                <section class="screen-view hidden-view" id="view-projects">
+                    <div class="view-header">DATABASE: PROJECTS</div>
+                    <div class="project-list">
+                        <div class="project-card" onclick="openModal('SYS.STYLOPHONE')">
+                            <div class="project-icon">🔊</div>
+                            <div class="project-info">
+                                <h3>SYS.STYLOPHONE</h3>
+                                <p>BJT Oscillator</p>
+                            </div>
+                            <div class="project-status">DONE</div>
+                        </div>
+                        <div class="project-card" onclick="openModal('UFO.TRACKER')">
+                            <div class="project-icon">🤖</div>
+                            <div class="project-info">
+                                <h3>UFO.TRACKER</h3>
+                                <p>Radar System</p>
+                            </div>
+                            <div class="project-status">WIP</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="screen-view hidden-view" id="view-logs">
+                    <div class="view-header">TRANSMISSION LOGS</div>
+                    <ul class="log-list">
+                        <li><span class="log-date">EARTH_DAY_42:</span> Encountered "Cat". Generated static electricity.</li>
+                        <li><span class="log-date">EARTH_DAY_39:</span> Soldering iron is hot. Do not touch. (Pain level: High)</li>
+                        <li><span class="log-date">EARTH_DAY_12:</span> Collected 50 resistors. Earth currency?</li>
+                    </ul>
+                </section>
+
+                <div class="project-modal" id="project-modal">
+                    <div class="modal-header">
+                        <span class="modal-title" id="modal-title-text">SYS_FILE</span>
+                        <button class="modal-close-btn" onclick="closeModal()">[X]</button>
+                    </div>
+                    <div class="modal-content">
+                        <div class="media-placeholder">
+                            <p>▶ INSTAGRAM_REEL</p>
+                        </div>
+                        <div class="tech-specs">
+                            <h4 class="spec-title">HARDWARE:</h4>
+                            <p class="spec-text">> 2x BJT (2N3904)</p>
+                            <p class="spec-text">> No 555-Timers Allowed</p>
+                            <h4 class="spec-title">NULL_LOG:</h4>
+                            <p class="spec-text">Humans use pre-packaged chips. I prefer the raw scream of silicon. It speaks in square waves.</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <nav class="controls">
+                <div class="d-pad">
+                    <button class="nav-btn" onclick="switchView('view-projects')">PROJECTS</button>
+                    <button class="nav-btn" onclick="switchView('view-logs')">LOGS</button>
+                </div>
+                <div class="action-buttons">
+                    <div class="btn-group">
+                        <button class="round-btn btn-a" onclick="switchView('view-home')">A</button>
+                        <p>HOME</p>
+                    </div>
+                    <div class="btn-group">
+                        <button class="round-btn btn-b" onclick="closeModal()">B</button>
+                        <p>BACK</p>
+                    </div>
+                </div>
+                
+            </nav>
+        </div>
+    </div>
+
+    <script>
+        // 切换屏幕视图
+        function switchView(targetViewId) {
+            closeModal(); // 切换视图时确保弹窗关闭
+            const views = document.querySelectorAll('.screen-view');
+            views.forEach(view => {
+                view.classList.remove('active-view');
+                view.classList.add('hidden-view');
+            });
+            
+            const target = document.getElementById(targetViewId);
+            target.classList.remove('hidden-view');
+            target.classList.add('active-view');
+
+            const screen = document.getElementById('screen-display');
+            screen.style.opacity = '0.5';
+            setTimeout(() => { screen.style.opacity = '1'; }, 100);
+        }
+
+        // 打开弹窗
+        function openModal(projectName) {
+            const modal = document.getElementById('project-modal');
+            const titleText = document.getElementById('modal-title-text');
+            titleText.innerText = projectName; // 动态更新弹窗标题
+            modal.classList.add('modal-open');
+        }
+
+        // 关闭弹窗
+        function closeModal() {
+            const modal = document.getElementById('project-modal');
+            modal.classList.remove('modal-open');
+        }
+
+        // 音乐播放控制
+        let isMusicPlaying = false;
+        
+        function toggleMusic() {
+            const music = document.getElementById('bg-music');
+            const btn = document.getElementById('music-btn');
+            
+            if (isMusicPlaying) {
+                music.pause();
+                btn.innerText = '[►] MUSIC: OFF';
+                btn.classList.remove('glitch-text'); // 暂停时不闪烁
+            } else {
+                // 浏览器可能会拦截播放请求，加入 catch 捕获异常
+                music.play().then(() => {
+                    btn.innerText = '[||] MUSIC: ON';
+                    btn.classList.add('glitch-text'); // 播放时加上亮粉色的闪烁效果
+                }).catch(error => {
+                    console.log("浏览器拦截了播放：", error);
+                });
+            }
+            isMusicPlaying = !isMusicPlaying;
+        }
+    </script>
+</body>
+</html>

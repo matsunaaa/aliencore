@@ -1,0 +1,517 @@
+/* =========================================
+   1. 色彩映射 (Color Mapping)
+   ========================================= */
+
+/* 默认主题：Palette 1 (温暖粉绿复古风) */
+:root {
+    --bg-out: #faeee7;
+    --grid-line: rgba(89, 74, 78, 0.1);
+    
+    --shell-glass: rgba(255, 255, 254, 0.6);
+    --shell-border: #33272a;
+    --shadow-hard: #33272a;
+    
+    --screen-bg: #fffffe;
+    --text-dark: #33272a;
+    --text-mid: #594a4e;
+    
+    --accent-primary: #ff8ba7;
+    --accent-secondary: #c3f0ca;
+    --accent-tertiary: #ffc6c7;
+}
+
+/* 备用主题：Palette 2 (海军蓝与奶油拼色风) */
+body.theme-alt {
+    --bg-out: #fef6e4;
+    --grid-line: rgba(23, 44, 102, 0.1);
+    
+    --shell-glass: rgba(243, 210, 193, 0.5);
+    --shell-border: #001858;
+    --shadow-hard: #001858;
+    
+    --screen-bg: #fef6e4;
+    --text-dark: #001858;
+    --text-mid: #172c66;
+    
+    --accent-primary: #f582ae;
+    --accent-secondary: #8bd3dd;
+    --accent-tertiary: #f3d2c1;
+}
+
+/* =========================================
+   2. 全局与背景 (Global & Background)
+   ========================================= */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'VT323', monospace;
+    background-color: var(--bg-out);
+    color: var(--text-dark);
+    transition: background-color 0.6s ease;
+    
+    /* 动态工程网格 */
+    background-image: 
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridScroll 20s linear infinite;
+}
+
+/* 只在非博客页面隐藏滚动条 */
+body:not(.blog-page) {
+    overflow: hidden; 
+}
+
+/* =========================================
+   3. 🌟 新增：散落照片墙 (Photo Wall)
+   ========================================= */
+.photo-wall {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none; /* 让大部分区域不阻挡鼠标 */
+    z-index: 1; /* 放在最底层 */
+}
+
+/* 拍立得样式 */
+.polaroid {
+    position: absolute;
+    background-color: #fafafa;
+    padding: 10px 10px 35px 10px; /* 底部留白写字 */
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 4px 6px 15px rgba(0,0,0,0.15);
+    pointer-events: auto; /* 恢复照片本身的鼠标交互 */
+    cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s, z-index 0s;
+}
+
+/* 悬停时：放大、回正、阴影加深、置顶 */
+.polaroid:hover {
+    transform: scale(1.15) rotate(0deg) !important; /* 强制覆盖行内的 rotate */
+    box-shadow: 8px 12px 25px rgba(0,0,0,0.3);
+    z-index: 50; 
+}
+
+/* 胶带细节 (用伪元素画的半透明胶带) */
+.polaroid::before {
+    content: "";
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
+    width: 60px;
+    height: 25px;
+    background-color: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    backdrop-filter: blur(2px);
+    z-index: 2;
+}
+
+.polaroid-img {
+    width: 120px;
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-dark);
+    font-weight: bold;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+}
+
+.polaroid-caption {
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    margin: 0;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 8px;
+    color: #333;
+    opacity: 0.8;
+}
+
+/* =========================================
+   4. 掌机悬浮与外壳 (The Hovering Console)
+   ========================================= */
+.levitation-wrapper {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: float 6s ease-in-out infinite;
+    z-index: 10;
+    
+    pointer-events: none; 
+}
+
+@keyframes float {
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(1deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+}
+
+.console-shell {
+    width: 85%;
+    max-width: 500px;
+    padding: 25px;
+    position: relative;
+    background: var(--shell-glass);
+    backdrop-filter: blur(8px);
+    border: 4px solid var(--shell-border);
+    border-radius: 30px;
+    box-shadow: 12px 12px 0px var(--shadow-hard);
+    transition: all 0.6s ease;
+    
+    /* 🌟 核心修复 2：恢复掌机实体区域的鼠标点击功能 */
+    pointer-events: auto; 
+}
+
+/* 神秘切换按钮 */
+.mystery-toggle {
+    position: absolute;
+    top: -10px;
+    right: 20px;
+    width: 20px;
+    height: 20px;
+    background-color: var(--accent-primary);
+    border: 3px solid var(--shell-border);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0px 4px 0px var(--shadow-hard);
+    transition: transform 0.1s, box-shadow 0.1s, background-color 0.6s ease;
+}
+
+.mystery-toggle:active {
+    transform: translateY(4px);
+    box-shadow: 0px 0px 0px var(--shadow-hard);
+}
+
+.status-bar {
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+    color: var(--text-mid);
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+/* =========================================
+   5. 屏幕区域与视图控制 (Screen & Views)
+   ========================================= */
+.main-screen {
+    height: 260px;
+    background: var(--screen-bg);
+    border: 4px solid var(--shell-border);
+    border-radius: 15px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: inset 4px 4px 0px rgba(0,0,0,0.05);
+    transition: background-color 0.6s ease;
+}
+
+/* 扫描线 */
+.scanline {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    background: linear-gradient(to bottom, rgba(255,255,255,0) 50%, rgba(0,0,0,0.05) 50%);
+    background-size: 100% 6px;
+    pointer-events: none;
+    z-index: 20;
+}
+
+/* 视图显示逻辑 */
+.screen-view {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0; left: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+    transition: opacity 0.2s ease;
+}
+
+.hidden-view { opacity: 0; pointer-events: none; z-index: 1; }
+.active-view { opacity: 1; pointer-events: auto; z-index: 5; }
+
+/* 首页样式 */
+#view-home { justify-content: center; align-items: center; text-align: center; }
+.pixel-title { font-family: 'Press Start 2P', cursive; color: var(--text-dark); font-size: 1.1rem; margin-bottom: 10px; text-shadow: 2px 2px 0px var(--accent-primary); }
+.subtitle { color: var(--text-mid); font-size: 1.2rem; }
+.null-avatar { margin-top: 15px; font-size: 2rem; color: var(--accent-secondary); font-weight: bold; text-shadow: 2px 2px 0px var(--shell-border); }
+
+/* 子页面标题 */
+.view-header {
+    background-color: var(--text-dark); color: var(--screen-bg); font-size: 14px;
+    padding: 5px 10px; margin-bottom: 15px; border: 2px solid var(--shell-border);
+    display: inline-block; align-self: flex-start; box-shadow: 2px 2px 0px var(--accent-primary);
+}
+
+/* =========================================
+   6. 列表样式 (Projects & Logs)
+   ========================================= */
+.project-list, .log-list {
+    display: flex; flex-direction: column; gap: 12px;
+    overflow-y: auto; padding-right: 5px;
+}
+.project-list::-webkit-scrollbar, .log-list::-webkit-scrollbar { width: 0px; }
+
+.project-card {
+    display: flex; align-items: center; background: var(--screen-bg);
+    border: 3px solid var(--shell-border); padding: 10px; cursor: pointer;
+    box-shadow: 3px 3px 0px var(--shadow-hard); transition: all 0.1s;
+}
+.project-card:hover { background-color: var(--accent-tertiary); transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--shadow-hard); }
+.project-icon { font-size: 24px; margin-right: 15px; background: var(--text-dark); width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 5px; border: 2px solid var(--shell-border); }
+.project-info { flex-grow: 1; text-align: left; }
+.project-info h3 { margin: 0 0 5px 0; font-size: 14px; font-family: 'Press Start 2P', cursive; color: var(--text-dark); }
+.project-info p { margin: 0; font-size: 12px; color: var(--text-mid); }
+.project-status { font-size: 12px; font-weight: bold; color: var(--accent-primary); border: 2px solid var(--accent-primary); padding: 2px 5px; border-radius: 4px; }
+
+.log-list li {
+    font-size: 14px; color: var(--text-mid); margin-bottom: 15px;
+    line-height: 1.4; border-left: 3px dashed var(--accent-secondary); padding-left: 10px; text-align: left;
+}
+.log-date { font-weight: bold; color: var(--text-dark); display: block; margin-bottom: 4px; font-family: 'Press Start 2P', cursive; font-size: 9px; }
+
+/* =========================================
+   7. 项目详情弹窗 (Modal)
+   ========================================= */
+.project-modal {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+    width: 90%; height: 90%; background-color: var(--screen-bg);
+    border: 4px solid var(--shell-border); box-shadow: 6px 6px 0px var(--shadow-hard);
+    display: flex; flex-direction: column; z-index: 100;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.project-modal.modal-open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+
+.modal-header {
+    background-color: var(--text-dark); color: var(--screen-bg); padding: 5px 8px;
+    display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--shell-border);
+}
+.modal-title { font-family: 'Press Start 2P', cursive; font-size: 8px; letter-spacing: 1px; }
+.modal-close-btn { background: transparent; color: var(--accent-primary); border: none; font-family: 'Press Start 2P', cursive; font-size: 10px; cursor: pointer; font-weight: bold; }
+
+.modal-content { padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+.modal-content::-webkit-scrollbar { width: 0px; }
+
+.media-placeholder {
+    width: 100%; height: 120px;
+    background-image: repeating-linear-gradient(45deg, var(--grid-line), var(--grid-line) 10px, transparent 10px, transparent 20px);
+    border: 3px dashed var(--text-mid); display: flex; justify-content: center; align-items: center; color: var(--text-dark); font-weight: bold;
+}
+
+.tech-specs { text-align: left; background-color: rgba(0,0,0,0.03); padding: 10px; border: 2px solid var(--text-dark); }
+.spec-title { font-family: 'Press Start 2P', cursive; font-size: 9px; color: var(--accent-primary); margin: 0 0 8px 0; text-shadow: 1px 1px 0px var(--shell-border); }
+.spec-text { font-size: 12px; color: var(--text-mid); margin: 0 0 5px 0; line-height: 1.3; }
+
+/* =========================================
+   8. 物理控制按键 (Controls)
+   ========================================= */
+.controls { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; }
+.d-pad { display: flex; flex-direction: column; gap: 10px; }
+.nav-btn { background: var(--screen-bg); color: var(--text-dark); border: 3px solid var(--shell-border); border-radius: 8px; font-family: 'Press Start 2P', cursive; font-size: 10px; padding: 10px; cursor: pointer; box-shadow: 4px 4px 0px var(--shadow-hard); transition: transform 0.1s, box-shadow 0.1s, background-color 0.6s ease; }
+.nav-btn:active { transform: translate(4px, 4px); box-shadow: 0px 0px 0px var(--shadow-hard); }
+
+.action-buttons { display: flex; gap: 15px; }
+.btn-group { display: flex; flex-direction: column; align-items: center; }
+.btn-group p { font-size: 14px; font-weight: bold; color: var(--text-mid); margin: 8px 0 0 0; }
+.round-btn { width: 55px; height: 55px; border-radius: 50%; border: 4px solid var(--shell-border); cursor: pointer; font-family: 'Press Start 2P', cursive; font-size: 16px; color: var(--text-dark); box-shadow: 4px 6px 0px var(--shadow-hard); transition: transform 0.1s, box-shadow 0.1s, background-color 0.6s ease; }
+.btn-a { background: var(--accent-primary); }
+.btn-b { background: var(--accent-secondary); }
+.round-btn:active { transform: translate(4px, 6px); box-shadow: 0px 0px 0px var(--shadow-hard); }
+
+/* =========================================
+   10. 独立博客页面 (Blog Page Styles)
+   ========================================= */
+
+.blog-page {
+    overflow-x: hidden;
+    overflow-y: auto; 
+    min-height: 100vh;  
+    padding-bottom: 100px;
+    background-attachment: fixed; 
+}
+
+.blog-bg-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at 10% 10%, rgba(195, 240, 202, 0.2) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* 博客导航 */
+.blog-nav {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 5%;
+    background: var(--text-dark);
+    color: var(--screen-bg);
+}
+
+.back-link {
+    color: var(--accent-secondary);
+    text-decoration: none;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+}
+
+.back-link:hover { color: var(--accent-primary); }
+
+/* 标题区 */
+.blog-header {
+    text-align: center;
+    margin: 60px 0;
+}
+
+.date-stamp {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 9px;
+    color: var(--text-mid);
+    margin-top: 15px;
+}
+
+/* 笔记容器布局 */
+.diary-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 100px;
+}
+
+/* 单个日记条目 */
+.diary-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 30px;
+    transform: rotate(var(--rotation));
+}
+
+.item-large .photo-frame { width: 450px; height: 350px; }
+.item-medium .photo-frame { width: 300px; height: 400px; }
+.item-small .photo-frame { width: 200px; height: 200px; }
+
+/* 照片框样式 */
+.photo-frame {
+    background: white;
+    padding: 15px 15px 40px 15px;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 10px 10px 0px var(--shell-border);
+    position: relative;
+    overflow: hidden;
+}
+
+.placeholder-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background-color: #eee; /* 在你放真图片前显示灰色 */
+}
+
+/* 扫描线效果 */
+.scan-line-v {
+    position: absolute;
+    top: 0; left: 20%;
+    width: 2px; height: 100%;
+    background: var(--accent-primary);
+    box-shadow: 0 0 10px var(--accent-primary);
+    animation: scanH 4s linear infinite;
+}
+
+@keyframes scanH {
+    0% { left: 0%; } 100% { left: 100%; }
+}
+
+/* 外星笔记文字 */
+.alien-note {
+    max-width: 300px;
+    text-align: left;
+    border-top: 2px solid var(--text-dark);
+    padding-top: 10px;
+}
+
+.alien-note h3 {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 10px;
+    color: var(--accent-primary);
+}
+
+.alien-note p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-dark);
+}
+
+/* 粘性便签风格 */
+.sticky {
+    background-color: var(--accent-secondary);
+    padding: 15px;
+    box-shadow: 5px 5px 0px var(--shell-border);
+    transform: rotate(2deg);
+}
+
+/* 科技标签 */
+.tech-tag {
+    position: absolute;
+    background: var(--text-dark);
+    color: var(--accent-secondary);
+    font-family: 'VT323', monospace;
+    padding: 5px 10px;
+    font-size: 14px;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+/* 占位图小网格 */
+.placeholder-grid {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-top: 50px;
+}
+
+.photo-frame.tiny { width: 100px; height: 100px; padding: 5px 5px 15px 5px; }
+
+/* 线条装饰 */
+.circuit-line {
+    position: absolute;
+    top: -40px;
+    right: -40px;
+}
+
+/* 手写感文字 */
+.handwritten {
+    font-family: 'VT323', monospace;
+    font-style: italic;
+    color: var(--text-mid);
+    margin-top: 10px;
+}
+
+/* 像素贴纸 */
+.pixel-sticker {
+    background: var(--accent-primary);
+    color: white;
+    padding: 5px 10px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 8px;
+    position: absolute;
+    top: -10px; left: -10px;
+    transform: rotate(-15deg);
+    box-shadow: 2px 2px 0px var(--text-dark);
+}
