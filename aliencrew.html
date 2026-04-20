@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SYS_DATA // ALIEN_CREW</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="alien.js" defer></script>
+</head>
+<body class="crew-page">
+
+    <header class="doc-header">
+        <a href="index.html" class="back-btn">← [RETURN_TO_STATION]</a>
+        <div style="font-family:'VT323', monospace; font-size:16px;">
+            <span style="color:var(--text-mid);">SECTOR: BIO_DECK</span>
+        </div>
+    </header>
+
+    <main class="game-container">
+        <div id="game-viewport">
+            <canvas id="crew-canvas"></canvas>
+            
+            <div class="scene-prop" style="bottom: 20px; left: 10%;">[SERVER_RACK]</div>
+            <div class="scene-prop" style="bottom: 20px; right: 15%;">[OSCILLOSCOPE]</div>
+        </div>
+
+        <div id="id-card-panel" class="hidden">
+            <div class="panel-header">
+                <span class="glitch-text">CREW_DATA</span>
+                <button class="close-btn" onclick="closeIDCard()">[X]</button>
+            </div>
+            <div class="panel-content">
+                <div class="mugshot" id="card-mugshot">IMG</div>
+                <div class="stats">
+                    <p><strong>NAME:</strong> <span id="card-name">...</span></p>
+                    <p><strong>RACE:</strong> <span id="card-race">...</span></p>
+                    <p><strong>ROLE:</strong> <span id="card-role">...</span></p>
+                    <p class="desc" id="card-desc">...</p>
+                </div>
+            </div>
+            <button id="talk-btn" class="action-btn">INITIATE_COMMS</button>
+        </div>
+
+        <div id="dialogue-box" class="hidden">
+            <div class="speaker-name" id="speaker-name">UNKNOWN</div>
+            <p class="dialogue-text" id="dialogue-text">...</p>
+            <button class="next-btn" id="next-dialogue-btn">NEXT_></button>
+        </div>
+    </main>
+
+</body>
+</html>

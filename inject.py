@@ -8,7 +8,7 @@ def print_header():
 def inject_project():
     print_header()
     
-    # 1. 获取你的输入
+    # 1. get input
     title = input("> PROJECT_TITLE (ex: SYS.STYLOPHONE): ")
     icon = input("> ICON (ex: 🔊): ")
     sub = input("> SUBTITLE (ex: BJT Oscillator): ")
@@ -16,14 +16,16 @@ def inject_project():
     hw = input("> HARDWARE_SPECS: ")
     log = input("> NULL_LOG: ")
     vid = input("> VIDEO_URL (or type 'none'): ")
+    doc = input("> DOC_URL (ex: doc_stylophone.html or 'none'): ")
     
-    # 2. 生成带 data-* 属性的 HTML 模块
-    new_card = f"""
+    # 2. COMPILE HTML PAYLOAD WITH DATA ATTRIBUTES
+    html_snippet = f"""
                         <div class="project-card" 
                             data-title="{title}" 
                             data-hw="{hw}" 
                             data-log="{log}" 
                             data-vid="{vid}" 
+                            data-doc="{doc}" 
                             onclick="openModal(this)">
                             <div class="project-icon">{icon}</div>
                             <div class="project-info">
@@ -31,9 +33,10 @@ def inject_project():
                                 <p>{sub}</p>
                             </div>
                             <div class="project-status">{status}</div>
-                        </div>"""
+                        </div>
+                        """
     
-    # 3. 读取、注入、保存 index.html
+    # 3. INJECT
     file_path = "index.html"
     marker = "<!-- inject -->"
     
@@ -45,9 +48,7 @@ def inject_project():
             print(f"\n[!] SYS_ERROR: Cannot find '{marker}' in {file_path}.")
             return
             
-        # 🌟 核心修复：把原有的 marker 替换成 "新卡片 + 换行 + 原有的 marker"
-        # 这样 marker 就永远被推到了最底部，方便下次继续注入！
-        replacement = new_card + "\n" + f"                        {marker}"
+        replacement = html_snippet + "\n" + f"                        {marker}"
         content = content.replace(marker, replacement)
         
         with open(file_path, "w", encoding="utf-8") as f:

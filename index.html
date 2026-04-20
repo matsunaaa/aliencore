@@ -24,7 +24,7 @@
             <p class="polaroid-caption">404_CAPACITOR</p>
         </div>
 
-        <div class="polaroid" style="bottom: 15%; right: 5%; transform: rotate(-6deg);" onclick="alert('ACCESS_DENIED: BIOLOGICAL_DATA_ENCRYPTED')">
+        <div class="polaroid" style="bottom: 15%; right: 5%; transform: rotate(-6deg);" onclick="window.location.href='aliencrew.html'">
             <div class="polaroid-img" style="background: #f582ae;">[IMG_04]</div>
             <p class="polaroid-caption">ALIEN_CREW</p>
         </div>
@@ -89,19 +89,22 @@
                         </div>
 
                         
+                        
                         <div class="project-card" 
-                            data-title="1" 
-                            data-hw="1" 
-                            data-log="1" 
-                            data-vid="1" 
+                            data-title="SPACESHIP" 
+                            data-hw="mysterious flying objects.👽" 
+                            data-log="crash count: 5000" 
+                            data-vid="none" 
+                            data-doc="none" 
                             onclick="openModal(this)">
-                            <div class="project-icon">1</div>
+                            <div class="project-icon">🪐</div>
                             <div class="project-info">
-                                <h3>1</h3>
-                                <p>1</p>
+                                <h3>SPACESHIP</h3>
+                                <p>human call it drone. why? bee?🐝</p>
                             </div>
-                            <div class="project-status">1</div>
+                            <div class="project-status">WIP</div>
                         </div>
+                        
                         <!-- inject -->
                 </section>
 
@@ -129,6 +132,12 @@
                             
                             <h4 class="spec-title">NULL_LOG:</h4>
                             <p class="spec-text" id="modal-log">LOADING...</p>
+                        </div>
+
+                        <div style="margin-top: 15px; text-align: center;">
+                            <button id="modal-doc-btn" class="nav-btn" style="width:100%; font-size:12px; background:var(--accent-pink); color:var(--text-dark);">
+                                📄 ACCESS_FULL_DATABANK
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -196,6 +205,20 @@
                 mediaDiv.innerHTML = `<p style="font-family:'Press Start 2P', cursive; font-size:10px;">[ NO_VIDEO_DATA ]</p>`;
             }
 
+            modal.classList.add('modal-open');
+
+            // 获取文档链接
+            const docLink = cardElement.getAttribute('data-doc');
+            const docBtn = document.getElementById('modal-doc-btn');
+            
+            if (docLink && docLink !== "none") {
+                docBtn.style.display = 'block';
+                docBtn.onclick = () => window.location.href = docLink;
+            } else {
+                docBtn.style.display = 'none';
+            }
+            
+            // ...
             modal.classList.add('modal-open');
         }
 

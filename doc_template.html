@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SYS_DOC // READ_MODE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body class="doc-page theme-alt"> <header class="doc-header">
+        <a href="index.html" class="back-btn">← [RETURN_TO_STATION]</a>
+        
+        <div style="font-family:'VT323', monospace; font-size:16px;">
+            <span style="color:var(--text-mid); margin-right:20px;">DOC_ID: 0x4A</span>
+            <span class="music-toggle" id="music-btn" onclick="toggleMusic()" style="cursor:pointer; color:var(--accent-pink);">[►] SONIC: OFF</span>
+        </div>
+    </header>
+
+    <audio id="bg-music" loop>
+        <source src="your_alien_music.mp3" type="audio/mpeg">
+    </audio>
+
+    <main class="doc-container">
+        <div id="md-render-target" class="md-content">
+            </div>
+    </main>
+
+    <textarea id="md-source" style="display:none;">
+# SYS.STYLOPHONE: BJT OSCILLATOR
+
+> "Why use a 555-Timer when you can force raw silicon to scream?" — NULL_LOG
+
+This document outlines the construction of a primitive Earth synthesizer using discrete components.
+
+## HW_SPECIFICATIONS
+* **Transistors:** 2x 2N3904 (NPN BJT)
+* **Capacitors:** 2x 10uF Electrolytic
+* **Resistors:** 1x 1kΩ, 1x 10kΩ, 1x Variable Potentiometer
+* **Power:** 9V Earth Battery
+
+## SCHEMATIC_ANALYSIS
+
+The circuit relies on an **Astable Multivibrator** configuration. When power is applied, the slight mismatch in transistor characteristics causes one to turn on slightly faster than the other.
+
+This creates a chain reaction:
+1.  Transistor A pulls current, charging Capacitor A.
+2.  Capacitor A discharges, shutting off Transistor B.
+3.  The cycle repeats, generating a square wave.
+
+\`\`\`c
+// THIS IS A GLITCH IN THE MATRIX
+void generate_noise() {
+    while(true) {
+        toggle_pin(HIGH);
+        delay(freq);
+        toggle_pin(LOW);
+    }
+}
+\`\`\`
+
+## OBSERVATIONS
+
+The humans touch the copper plates with a stylus. The resistance of their flesh alters the discharge rate of the capacitors, modifying the pitch. *Fascinating.*
+
+[WATCH_ARCHIVE_FOOTAGE_HERE](#)
+    </textarea>
+
+    <script>
+        // INIT MARKDOWN PARSER
+        const mdSource = document.getElementById('md-source').value;
+        document.getElementById('md-render-target').innerHTML = marked.parse(mdSource);
+
+        // MUSIC LOGIC
+        let isMusicPlaying = false;
+        function toggleMusic() {
+            const music = document.getElementById('bg-music');
+            const btn = document.getElementById('music-btn');
+            if (isMusicPlaying) {
+                music.pause();
+                btn.innerText = '[►] SONIC: OFF';
+            } else {
+                music.play().then(() => {
+                    btn.innerText = '[||] SONIC: ON';
+                }).catch(e => console.log("SYS_ERR: AUDIO_BLOCKED"));
+            }
+            isMusicPlaying = !isMusicPlaying;
+        }
+    </script>
+</body>
+</html>
