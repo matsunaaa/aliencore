@@ -41,12 +41,24 @@
             <button id="talk-btn" class="action-btn">INITIATE_COMMS</button>
         </div>
 
+        <div id="episode-list" class="terminal-panel">
+            <div class="panel-header">DATABANKS</div>
+            <ul>
+                <li><button onclick="loadEpisode('ep01_ohm.txt')">EP_01: OHM'S LAW</button></li>
+                <li><button onclick="loadEpisode('ep02_cap.txt')">EP_02: CAPACITORS</button></li>
+            </ul>
+        </div>
+
         <div id="dialogue-box" class="hidden">
             <div class="speaker-name" id="speaker-name">UNKNOWN</div>
             <p class="dialogue-text" id="dialogue-text">...</p>
             <button class="next-btn" id="next-dialogue-btn">NEXT_></button>
         </div>
     </main>
+    
+    <audio id="crew-bgm" loop>
+        <source src="assets/crew_theme.mp3" type="audio/mpeg">
+    </audio>
 
 </body>
 </html>

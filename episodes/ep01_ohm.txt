@@ -1,0 +1,8 @@
+>>> MUSIC: assets/caught.mp3
+[ZORB] I consumed a 9V battery. I feel... energized.
+[GLITCH] WARNING. CURRENT EXCEEDS LIMITS.
+>>> ACTION: ZORB SHAKE
+[ZORB] Nonsense. I am invincible.
+>>> SOUND: zap.mp3
+>>> ACTION: SCREEN GLITCH
+[GLITCH] V = I * R. Your resistance is too low.

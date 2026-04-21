@@ -35,7 +35,7 @@
         <div class="console-shell">
             
             <div class="mystery-toggle" onclick="document.body.classList.toggle('theme-alt')"></div>
-            
+
             <div class="status-bar">
                 <span>SIGNAL: STABLE</span>
                 <span>BATT: 88%</span>
@@ -46,6 +46,8 @@
                 <source src="assets/null-theme.mp3" type="audio/mpeg">
                 Your browser does not support the audio element.
             </audio>
+
+            <a href="dev.html" class="dev-gear-btn" title="ACCESS_BACKSTAGE">⚙️</a>
 
             <main class="main-screen" id="screen-display">
                 <div class="scanline"></div>
@@ -164,9 +166,8 @@
     </div>
 
     <script>
-        // 切换屏幕视图
         function switchView(targetViewId) {
-            closeModal(); // 切换视图时确保弹窗关闭
+            closeModal();
             const views = document.querySelectorAll('.screen-view');
             views.forEach(view => {
                 view.classList.remove('active-view');
