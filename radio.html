@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SYS // SIGNAL_INTERCEPTOR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        /* 1. PALETTE DEFINITIONS (DARK STEALTH MODE) */
+        :root {
+            --bg-out: #0a0a0a;
+            --shell-border: #33272a;
+            --screen-bg: #1a1a24;
+            --text-dark: #33272a;
+            --text-mid: #594a4e;
+            --accent-pink: #ff8ba7;
+            --accent-green: #c3f0ca;
+            --accent-sky: #8bd3dd;
+        }
+
+        body {
+            background-color: var(--bg-out);
+            font-family: 'VT323', monospace;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; margin: 0; overflow: hidden;
+        }
+
+        .interceptor-shell {
+            background: #2a2a35;
+            border: 6px solid var(--shell-border);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 15px 15px 0px rgba(0,0,0,0.5);
+            width: 500px;
+            position: relative;
+        }
+
+        .title-bar {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px; color: var(--accent-pink);
+            margin-bottom: 20px; text-align: center;
+            letter-spacing: 2px; text-shadow: 2px 2px 0px var(--shell-border);
+        }
+
+        /* HARDWARE SCREEN */
+        .screen-container {
+            background: var(--screen-bg);
+            border: 4px solid var(--shell-border);
+            padding: 15px; border-radius: 8px;
+            position: relative; overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+            height: 240px; 
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* CRT SCANLINE EFFECT */
+        .screen-container::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px; pointer-events: none;
+        }
+
+        canvas {
+            width: 100%; height: 150px;
+            background: #000; border: 2px solid var(--accent-sky);
+            display: block; margin-bottom: 10px;
+        }
+
+        .data-readout {
+            color: var(--accent-sky);
+            display: flex; justify-content: space-between;
+            font-size: 20px; font-family: 'VT323', monospace;
+            margin-bottom: 5px;
+        }
+
+        .freq-display { color: var(--accent-pink); font-weight: bold; }
+        .sig-display { color: #ffeb3b; }
+
+        /* DECRYPTOR HUD */
+        .decrypted-text {
+            color: var(--text-mid);
+            min-height: 25px; font-size: 18px;
+            word-break: break-all; position: relative;
+            z-index: 10;
+        }
+
+        /* PHYSICAL CONTROLS */
+        .controls {
+            margin-top: 30px; display: flex; align-items: center; gap: 20px;
+        }
+
+        .dial-label {
+            font-family: 'Press Start 2P', cursive; font-size: 8px;
+            color: var(--accent-sky); margin-bottom: 10px;
+        }
+
+        .dial-container {
+            flex-grow: 1; display: flex; flex-direction: column;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none; width: 100%; background: transparent;
+        }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 8px; background: var(--shell-border);
+            border-radius: 4px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            height: 24px; width: 15px; border-radius: 2px;
+            background: var(--accent-pink); cursor: pointer;
+            -webkit-appearance: none; margin-top: -8px;
+            box-shadow: 2px 2px 0px var(--text-dark);
+        }
+
+        .power-btn {
+            width: 60px; height: 60px; border-radius: 50%;
+            background: #ff4757; border: 4px solid var(--shell-border);
+            color: white; font-family: 'Press Start 2P', cursive;
+            font-size: 10px; cursor: pointer;
+            box-shadow: 4px 4px 0px var(--text-dark);
+            transition: all 0.1s;
+        }
+        .power-btn:active {
+            transform: translate(4px, 4px); box-shadow: 0px 0px 0px var(--text-dark);
+        }
+        .power-btn.active {
+            background: var(--accent-green); color: var(--text-dark);
+        }
+
+        /* --- RETRO CONSOLE MENU STYLES --- */
+        .retro-console-menu {
+            display: flex; flex-direction: column; 
+            width: 100%; height: 100%;
+            background: var(--text-dark); color: var(--accent-green);
+            box-sizing: border-box;
+        }
+
+        .menu-header {
+            background: var(--accent-pink); color: var(--text-dark);
+            padding: 8px 10px; font-family: 'Press Start 2P', cursive; font-size: 9px;
+            display: flex; justify-content: space-between;
+            border-bottom: 4px solid var(--shell-border);
+        }
+
+        .menu-list {
+            flex-grow: 1; display: flex; flex-direction: column;
+            padding: 10px; gap: 4px; overflow-y: auto;
+        }
+        .menu-list::-webkit-scrollbar { width: 0px; }
+
+        .menu-item {
+            background: transparent; border: 2px dashed transparent;
+            color: var(--accent-sky); font-family: 'VT323', monospace; font-size: 20px;
+            text-align: left; padding: 6px 10px; cursor: pointer;
+            display: flex; align-items: center; gap: 15px; transition: all 0.1s;
+        }
+
+        .menu-item:hover, .menu-item:focus {
+            background: var(--accent-green); color: var(--text-dark);
+            border: 2px dashed var(--accent-pink);
+            transform: translateX(5px);
+        }
+
+        .menu-item .item-id { 
+            color: var(--accent-pink); 
+            font-family: 'Press Start 2P', cursive; font-size: 8px; 
+        }
+        .menu-item:hover .item-id { color: var(--text-dark); }
+
+        .menu-footer {
+            padding: 8px 10px; font-family: 'Press Start 2P', cursive; font-size: 9px; 
+            color: var(--accent-pink); border-top: 2px dashed var(--text-mid);
+        }
+
+        .blink { animation: blinker 1s step-end infinite; }
+        @keyframes blinker { 50% { opacity: 0; } }
+
+    </style>
+</head>
+<body>
+
+    <div class="interceptor-shell">
+        <div class="title-bar">SYS.SIGNAL_INTERCEPTOR</div>
+
+        <div class="screen-container">
+            <canvas id="oscilloscope"></canvas>
+
+            <div class="data-readout">
+                <span>FREQ: <span class="freq-display" id="freq-display">88.0</span> MHz</span>
+                <span>SIG: <span class="sig-display" id="sig-display">0</span>%</span>
+            </div>
+
+            <div class="decrypted-text" id="decode-display">[ AWAITING_POWER ]</div>
+        </div>
+
+        <div class="controls">
+            <button class="power-btn" id="power-btn">PWR</button>
+            <div class="dial-container">
+                <div class="dial-label">TUNING_DIAL (FREQ_SWEEP)</div>
+                <input type="range" id="tuning-dial" min="880" max="1080" value="880" disabled>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. CORE VARIABLES ---
+        let audioCtx, analyser, whiteNoise, noiseGain, targetSignal, signalGain;
+        let isPowered = false;
+        let animationId;
+
+        const canvas = document.getElementById('oscilloscope');
+        const canvasCtx = canvas.getContext('2d');
+        const freqDisplay = document.getElementById('freq-display');
+        const sigDisplay = document.getElementById('sig-display');
+        const decodeDisplay = document.getElementById('decode-display');
+        const dial = document.getElementById('tuning-dial');
+        const pwrBtn = document.getElementById('power-btn');
+
+        // SECRET ALIEN TARGET PARAMETERS
+        const TARGET_FREQ = 1042; // Represents 104.2 MHz
+        const SECRET_MESSAGE = "WARNING: HUMAN OBSERVATION DETECTED. INITIATE PROTOCOL_NULL.";
+        const SCRAMBLE_CHARS = "!@#$%^&*()_+-=[]{}|;:,.<>?/0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+        // --- 2. AUDIO ENGINE SETUP ---
+        function initAudio() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 2048;
+            analyser.connect(audioCtx.destination);
+
+            // A. PROCEDURAL WHITE NOISE
+            const bufferSize = audioCtx.sampleRate * 2;
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+            whiteNoise = audioCtx.createBufferSource();
+            whiteNoise.buffer = noiseBuffer;
+            whiteNoise.loop = true;
+
+            noiseGain = audioCtx.createGain();
+            noiseGain.gain.value = 0.5;
+            whiteNoise.connect(noiseGain);
+            noiseGain.connect(analyser);
+            whiteNoise.start();
+
+            // B. ALIEN TARGET SIGNAL
+            targetSignal = audioCtx.createOscillator();
+            targetSignal.type = 'sine';
+            targetSignal.frequency.value = 440;
+
+            signalGain = audioCtx.createGain();
+            signalGain.gain.value = 0;
+            targetSignal.connect(signalGain);
+            signalGain.connect(analyser);
+            targetSignal.start();
+        }
+
+        // --- 3. LOGIC & MATH ---
+        dial.addEventListener('input', (e) => {
+            if (!isPowered) return;
+
+            const currentFreq = parseInt(e.target.value);
+            freqDisplay.innerText = (currentFreq / 10).toFixed(1);
+
+            const distance = Math.abs(currentFreq - TARGET_FREQ);
+            const lockRange = 30;
+
+            let signalStrength = 0;
+            if (distance < lockRange) {
+                signalStrength = 1 - (distance / lockRange);
+            }
+
+            sigDisplay.innerText = Math.floor(signalStrength * 100);
+
+            if (signalStrength >= 0.99 && !window.alienHijackTriggered) {
+                window.alienHijackTriggered = true;
+                setTimeout(initiateProtocolNull, 1500); // Wait 1.5s for dramatic effect
+            }
+
+            // AUDIO CROSSFADE
+            noiseGain.gain.value = 0.5 - (signalStrength * 0.4);
+            signalGain.gain.value = signalStrength * 0.5;
+
+            decryptText(signalStrength);
+        });
+
+        // PROCEDURAL DECRYPTION
+        function decryptText(strength) {
+            if (strength === 0) {
+                decodeDisplay.innerText = "[ STATIC_NOISE ]";
+                decodeDisplay.style.color = "var(--text-mid)";
+                return;
+            }
+
+            let result = "";
+            for (let i = 0; i < SECRET_MESSAGE.length; i++) {
+                if (SECRET_MESSAGE[i] === " ") {
+                    result += " "; continue;
+                }
+
+                if (Math.random() < strength) {
+                    result += SECRET_MESSAGE[i];
+                } else {
+                    result += SCRAMBLE_CHARS.charAt(Math.floor(Math.random() * SCRAMBLE_CHARS.length));
+                }
+            }
+
+            decodeDisplay.innerText = result;
+            decodeDisplay.style.color = "var(--accent-pink)";
+
+            if (strength > 0.95) {
+                decodeDisplay.style.color = "var(--accent-sky)";
+            }
+        }
+
+        // --- 4. REAL-TIME OSCILLOSCOPE RENDERING ---
+        function drawWaveform() {
+            animationId = requestAnimationFrame(drawWaveform);
+
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteTimeDomainData(dataArray);
+
+            // GHOSTING EFFECT FOR CRT VIBE
+            canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+            canvasCtx.lineWidth = 2;
+            canvasCtx.strokeStyle = '#c3f0ca'; // var(--accent-green)
+            canvasCtx.beginPath();
+
+            const sliceWidth = canvas.width * 1.0 / bufferLength;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0;
+                const y = v * canvas.height / 2;
+
+                if (i === 0) {
+                    canvasCtx.moveTo(x, y);
+                } else {
+                    canvasCtx.lineTo(x, y);
+                }
+                x += sliceWidth;
+            }
+
+            canvasCtx.lineTo(canvas.width, canvas.height / 2);
+            canvasCtx.stroke();
+        }
+
+        // --- 5. POWER CONTROLS ---
+        pwrBtn.addEventListener('click', () => {
+            if (!isPowered) {
+                initAudio();
+
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+
+                drawWaveform();
+
+                dial.disabled = false;
+                decodeDisplay.innerText = "[ STATIC_NOISE ]";
+
+                pwrBtn.classList.add('active');
+                pwrBtn.innerText = "ON";
+                isPowered = true;
+            } else {
+                audioCtx.close();
+                cancelAnimationFrame(animationId);
+
+                canvasCtx.fillStyle = '#000';
+                canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+                dial.disabled = true;
+                freqDisplay.innerText = "88.0";
+                sigDisplay.innerText = "0";
+                decodeDisplay.innerText = "[ AWAITING_POWER ]";
+                decodeDisplay.style.color = "var(--text-mid)";
+
+                pwrBtn.classList.remove('active');
+                pwrBtn.innerText = "PWR";
+                isPowered = false;
+            }
+        });
+
+        // --- HIDDEN PROTOCOL OVERRIDE ---
+        function initiateProtocolNull() {
+            // 1. Kill the radio noise and freeze the dial
+            if (noiseGain) noiseGain.gain.value = 0;
+            if (signalGain) signalGain.gain.value = 0;
+            dial.disabled = true;
+            cancelAnimationFrame(animationId);
+            
+            // 2. Hardware Glitch Effect
+            document.body.style.filter = "invert(1) hue-rotate(180deg) contrast(200%)";
+            setTimeout(() => { document.body.style.filter = "none"; }, 150);
+            setTimeout(() => { document.body.style.filter = "invert(1) hue-rotate(180deg)"; }, 300);
+            setTimeout(() => { document.body.style.filter = "none"; }, 500);
+
+            // 3. Inject the Retro Console Menu
+            setTimeout(() => {
+                const screen = document.querySelector('.screen-container');
+                screen.style.padding = "0"; // Remove padding for full-screen menu
+                
+                screen.innerHTML = `
+                    <div class="retro-console-menu">
+                        <div class="menu-header">
+                            <span class="glitch-text">DATABANK_OVERRIDE</span>
+                            <span>v2.0.4</span>
+                        </div>
+                        
+                        <div class="menu-list">
+                            <button class="menu-item" onclick="launchModule('fourier')">
+                                <span class="item-id">EP_01</span>
+                                <span class="item-title">FOURIER_SYNTHESIS</span>
+                            </button>
+                            <button class="menu-item" onclick="launchModule('am_radio')">
+                                <span class="item-id">EP_02</span>
+                                <span class="item-title">AM_MODULATION</span>
+                            </button>
+                            <button class="menu-item" onclick="launchModule('filters')">
+                                <span class="item-id">EP_03</span>
+                                <span class="item-title">RC_FILTERS</span>
+                            </button>
+                            <button class="menu-item" onclick="launchModule('binary')">
+                                <span class="item-id">EP_04</span>
+                                <span class="item-title">BINARY_ENCODING</span>
+                            </button>
+                        </div>
+                        
+                        <div class="menu-footer">
+                            > SELECT_MODULE <span class="blink">_</span>
+                        </div>
+                    </div>
+                `;
+            }, 600);
+        }
+
+        // --- MODULE LAUNCHER & INTERACTIVE FOURIER UI ---
+        let fourierAnimId;
+
+        function launchModule(moduleId) {
+            if (moduleId === 'fourier') {
+                console.log("SYS_MSG: INITIATING FOURIER SYNTHESIS");
+                const screen = document.querySelector('.screen-container');
+                
+                // Inject the Interactive UI
+                screen.innerHTML = `
+                    <div style="display:flex; flex-direction:column; height:100%; box-sizing:border-box; background:var(--screen-bg);">
+                        <div style="background:var(--accent-pink); color:var(--text-dark); padding:5px 10px; font-family:'Press Start 2P', cursive; font-size:8px; border-bottom: 2px solid var(--shell-border);">
+                            MODULE: FOURIER_SYNTHESIS
+                        </div>
+                        
+                        <canvas id="fourier-canvas" style="width:100%; height:110px; background:#0a0a0a; border-bottom: 2px solid var(--shell-border);"></canvas>
+                        
+                        <div style="padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-family: 'VT323', monospace; color: var(--text-dark); background: var(--accent-sky); flex-grow: 1;">
+                            <div style="display:flex; justify-content:space-between;"><span>F0(1x)</span> <input type="range" id="h1" min="0" max="100" value="100" style="width:60px;"></div>
+                            <div style="display:flex; justify-content:space-between;"><span>H3(3x)</span> <input type="range" id="h3" min="0" max="100" value="0" style="width:60px;"></div>
+                            <div style="display:flex; justify-content:space-between;"><span>H5(5x)</span> <input type="range" id="h5" min="0" max="100" value="0" style="width:60px;"></div>
+                            <div style="display:flex; justify-content:space-between;"><span>H7(7x)</span> <input type="range" id="h7" min="0" max="100" value="0" style="width:60px;"></div>
+                        </div>
+                    </div>
+                `;
+
+                // Start the rendering loop
+                startFourierAnimation();
+            }
+        }
+
+        // --- FOURIER MATH & RENDERING ---
+        function startFourierAnimation() {
+            const fCanvas = document.getElementById('fourier-canvas');
+            const fCtx = fCanvas.getContext('2d');
+            
+            // Fix DPI scaling for crisp lines
+            fCanvas.width = fCanvas.clientWidth;
+            fCanvas.height = fCanvas.clientHeight;
+
+            const s1 = document.getElementById('h1');
+            const s3 = document.getElementById('h3');
+            const s5 = document.getElementById('h5');
+            const s7 = document.getElementById('h7');
+
+            let time = 0;
+
+            function draw() {
+                fourierAnimId = requestAnimationFrame(draw);
+                
+                // Clear screen with slight trail effect
+                fCtx.fillStyle = 'rgba(10, 10, 10, 0.4)';
+                fCtx.fillRect(0, 0, fCanvas.width, fCanvas.height);
+
+                // Draw Center Grid Line
+                fCtx.strokeStyle = 'rgba(139, 211, 221, 0.2)'; // Faded accent-sky
+                fCtx.lineWidth = 1;
+                fCtx.beginPath();
+                fCtx.moveTo(0, fCanvas.height / 2);
+                fCtx.lineTo(fCanvas.width, fCanvas.height / 2);
+                fCtx.stroke();
+
+                fCtx.beginPath();
+                fCtx.strokeStyle = '#ff8ba7'; // accent-pink
+                fCtx.lineWidth = 2;
+
+                const amplitude = fCanvas.height / 3;
+                const width = fCanvas.width;
+                
+                // Grab values from sliders (0.0 to 1.0)
+                const v1 = s1.value / 100;
+                const v3 = (s3.value / 100) * (1/3); // Mathematically, 3rd harmonic amplitude is 1/3
+                const v5 = (s5.value / 100) * (1/5); // 5th harmonic is 1/5
+                const v7 = (s7.value / 100) * (1/7); // 7th harmonic is 1/7
+
+                for (let x = 0; x < width; x++) {
+                    // Calculate the angle based on x-coordinate and scrolling time
+                    let angle = (x / width) * Math.PI * 4 + time; 
+
+                    // FOURIER SUMMATION: Fundamental + Odd Harmonics
+                    let y = Math.sin(angle) * v1;
+                    y += Math.sin(angle * 3) * v3;
+                    y += Math.sin(angle * 5) * v5;
+                    y += Math.sin(angle * 7) * v7;
+
+                    // Map mathematical Y to Canvas Y
+                    let canvasY = (fCanvas.height / 2) - (y * amplitude);
+
+                    if (x === 0) {
+                        fCtx.moveTo(x, canvasY);
+                    } else {
+                        fCtx.lineTo(x, canvasY);
+                    }
+                }
+                
+                fCtx.stroke();
+                time -= 0.05; // Speed of the wave scrolling
+            }
+
+            draw();
+        }
+    </script>
+</body>
+</html>
